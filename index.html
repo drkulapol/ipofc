@@ -106,6 +106,12 @@ a{color:var(--accent)}
 footer{border-top:1px solid var(--line);padding-top:16px;font-size:.85rem;color:var(--muted);line-height:1.7}
 footer a{color:var(--accent)}
 .empty{padding:28px;text-align:center;color:var(--muted)}
+.sitenav{background:var(--surface);border-bottom:1px solid var(--line)}
+.sitenav-in{max-width:1280px;margin:0 auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:0;display:flex;align-items:center;gap:4px;overflow-x:auto;scrollbar-width:thin}
+.sitenav-brand{font-family:var(--f-display);font-weight:700;color:var(--accent);margin-right:10px;white-space:nowrap;padding:11px 0}
+.sitenav a{color:var(--muted);text-decoration:none;white-space:nowrap;padding:11px 12px;border-bottom:2.5px solid transparent;font-size:.92rem}
+.sitenav a:hover{color:var(--ink)}
+.sitenav a[aria-current=page]{color:var(--accent);border-bottom-color:var(--accent);font-weight:600}
 .guide{display:flex;flex-direction:column;gap:10px}
 .steps{margin:0;padding-left:1.4em;display:flex;flex-direction:column;gap:2px}
 code{font-family:ui-monospace,"Cascadia Mono",Consolas,monospace;font-size:.85em;background:var(--surface-2);padding:1px 5px;border-radius:4px;word-break:break-word}
@@ -113,6 +119,18 @@ code{font-family:ui-monospace,"Cascadia Mono",Consolas,monospace;font-size:.85em
 pre.code{margin:0;background:var(--surface-2);border:1px solid var(--line);border-radius:8px;padding:12px 14px;overflow-x:auto;font-family:ui-monospace,"Cascadia Mono",Consolas,monospace;font-size:.82rem;line-height:1.5;color:var(--ink)}
 @media (prefers-reduced-motion:no-preference){.kpi .bar i{transition:width .4s ease}}
 </style>
+
+<nav class="sitenav" aria-label="ระบบจับคู่ลูกหนี้รายตัว">
+  <div class="sitenav-in">
+    <span class="sitenav-brand">ลูกหนี้รายตัว</span>
+    <a href="https://drkulapol.github.io/opofc/index.html">ลูกหนี้ OP เบิกได้</a>
+    <a href="https://drkulapol.github.io/ipofc/index.html" aria-current="page">ลูกหนี้ IPD เบิกได้</a>
+    <a href="https://drkulapol.github.io/ipuc/index.html">ลูกหนี้ IPD UC</a>
+    <a href="https://drkulapol.github.io/check-op-uc/index.html">ลูกหนี้ OP ON TOP</a>
+    <a href="https://drkulapol.github.io/opstp/index.html">ลูกหนี้ OP STP</a>
+    <a href="https://drkulapol.github.io/ipstp/index.html">ลูกหนี้ IP STP</a>
+  </div>
+</nav>
 
 <div class="wrap">
   <header class="top">
