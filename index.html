@@ -1,0 +1,549 @@
+<!doctype html>
+<html lang="th"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"></head><body style="margin:0">
+<title>จับคู่ลูกหนี้ IPD เบิกได้</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Thai:wght@500;600;700&family=Sarabun:wght@400;500;600&display=swap">
+<style>
+/* Layout: เครื่องมือทำงานแบบแผงเดียว — แถบนำเข้าไฟล์ → ตัวเลขสรุป → แท็บตาราง (รายเดือน / งวด STM / รายตัว) */
+:root{
+  --bg:#f3f6f5; --surface:#ffffff; --surface-2:#eef3f1; --ink:#15211e; --muted:#566862; --line:#d7e0dd;
+  --accent:#0d6b5b; --accent-ink:#ffffff; --accent-weak:#dff0ec;
+  --good:#1b7a48; --good-weak:#e1f3e8; --warn:#9a5d00; --warn-weak:#fbefd9; --bad:#ad3329; --bad-weak:#fbe5e2; --info:#2a5aa3; --info-weak:#e3ecfa;
+  --f-display:"IBM Plex Sans Thai","Sarabun","Leelawadee UI","Tahoma",sans-serif;
+  --f-body:"Sarabun","Leelawadee UI","Tahoma",sans-serif;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#0e1513; --surface:#16201e; --surface-2:#1c2926; --ink:#e3ebe8; --muted:#94a7a1; --line:#2a3a36;
+  --accent:#48c0a5; --accent-ink:#06201a; --accent-weak:#16352f;
+  --good:#5cc68b; --good-weak:#163423; --warn:#e3a645; --warn-weak:#3a2b12; --bad:#f2817a; --bad-weak:#3d1c19; --info:#86aef0; --info-weak:#1a2840;
+  color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0e1513; --surface:#16201e; --surface-2:#1c2926; --ink:#e3ebe8; --muted:#94a7a1; --line:#2a3a36;
+  --accent:#48c0a5; --accent-ink:#06201a; --accent-weak:#16352f;
+  --good:#5cc68b; --good-weak:#163423; --warn:#e3a645; --warn-weak:#3a2b12; --bad:#f2817a; --bad-weak:#3d1c19; --info:#86aef0; --info-weak:#1a2840;
+  color-scheme:dark}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font-family:var(--f-body);font-size:15px;line-height:1.55}
+.wrap{max-width:1280px;margin:0 auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:24px 40px;display:flex;flex-direction:column;gap:20px}
+h1,h2,h3{font-family:var(--f-display);text-wrap:balance;margin:0}
+h1{font-size:1.6rem;font-weight:700;letter-spacing:-.01em}
+h2{font-size:1.1rem;font-weight:600}
+.sub{color:var(--muted);margin:4px 0 0}
+.num,td.n,th.n{font-variant-numeric:tabular-nums}
+header.top{display:flex;justify-content:space-between;align-items:flex-end;gap:16px;flex-wrap:wrap}
+.eyebrow{font-size:.78rem;letter-spacing:.06em;color:var(--accent);font-weight:600;text-transform:uppercase}
+button,.btn{font:inherit;border:1px solid var(--line);background:var(--surface);color:var(--ink);border-radius:8px;padding:7px 14px;cursor:pointer}
+button:hover{border-color:var(--accent)}
+button.primary{background:var(--accent);color:var(--accent-ink);border-color:var(--accent);font-weight:600}
+button:focus-visible,input:focus-visible,select:focus-visible,.drop:focus-within{outline:2px solid var(--accent);outline-offset:2px}
+button:disabled{opacity:.5;cursor:not-allowed}
+.panel{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:18px}
+.imports{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+@media (max-width:760px){.imports{grid-template-columns:1fr}}
+.drop{position:relative;border:1.5px dashed var(--line);border-radius:10px;padding:14px 16px;display:flex;gap:14px;align-items:flex-start;background:var(--surface-2);min-width:0}
+.drop.over{border-color:var(--accent);background:var(--accent-weak)}
+.drop input[type=file]{position:absolute;inset:0;opacity:0;cursor:pointer}
+.drop .step{flex:none;width:30px;height:30px;border-radius:50%;background:var(--accent);color:var(--accent-ink);display:grid;place-items:center;font-weight:700;font-family:var(--f-display)}
+.drop .t{font-weight:600}
+.drop .h{color:var(--muted);font-size:.85rem}
+.drop .st{font-size:.85rem;margin-top:4px;color:var(--good);word-break:break-word}
+.opts{display:flex;flex-wrap:wrap;gap:10px 22px;align-items:center;margin-top:14px;font-size:.9rem;color:var(--muted)}
+.opts label{display:flex;gap:6px;align-items:center}
+.opts input[type=number]{width:80px;font:inherit;padding:4px 6px;border:1px solid var(--line);border-radius:6px;background:var(--surface);color:var(--ink)}
+.opts select{font:inherit;padding:4px 6px;border:1px solid var(--line);border-radius:6px;background:var(--surface);color:var(--ink)}
+.opts .sp{flex:1}
+.banner{border-radius:10px;padding:10px 14px;font-size:.92rem;display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.banner.demo{background:var(--warn-weak);color:var(--warn)}
+.banner.err{background:var(--bad-weak);color:var(--bad)}
+.banner.ok{background:var(--good-weak);color:var(--good)}
+.kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}
+@media (max-width:900px){.kpis{grid-template-columns:repeat(2,1fr)}}
+@media (max-width:440px){.kpis{grid-template-columns:1fr}}
+.kpi{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:14px 16px;display:flex;flex-direction:column;gap:2px;min-width:0}
+.kpi .l{font-size:.82rem;color:var(--muted)}
+.kpi .v{font-family:var(--f-display);font-size:1.45rem;font-weight:600;font-variant-numeric:tabular-nums}
+.kpi .s{font-size:.85rem;color:var(--muted);font-variant-numeric:tabular-nums}
+.kpi .bar{height:6px;border-radius:3px;background:var(--surface-2);overflow:hidden;margin-top:6px;display:flex}
+.kpi .bar i{display:block;height:100%}
+.pos{color:var(--good)} .neg{color:var(--bad)} .mut{color:var(--muted)}
+.tabs{display:flex;gap:4px;border-bottom:1px solid var(--line);overflow-x:auto}
+.tabs button{border:none;border-bottom:2.5px solid transparent;border-radius:0;background:none;padding:9px 14px;color:var(--muted);white-space:nowrap;font-weight:500}
+.tabs button[aria-selected=true]{color:var(--accent);border-bottom-color:var(--accent);font-weight:600}
+.tabs .cnt{font-size:.78rem;background:var(--surface-2);border-radius:10px;padding:1px 7px;margin-left:4px;color:var(--muted)}
+.toolbar{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin:14px 0 10px}
+.toolbar input[type=search]{font:inherit;padding:6px 10px;border:1px solid var(--line);border-radius:8px;min-width:0;flex:1 1 220px;max-width:360px;background:var(--surface);color:var(--ink)}
+.toolbar select{font:inherit;padding:6px 8px;border:1px solid var(--line);border-radius:8px;background:var(--surface);color:var(--ink)}
+.chips{display:flex;gap:6px;flex-wrap:wrap}
+.chip{font-size:.85rem;padding:4px 11px;border-radius:999px}
+.chip[aria-pressed=true]{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+.tbl{overflow-x:auto;border:1px solid var(--line);border-radius:10px;background:var(--surface)}
+table{border-collapse:collapse;width:100%;font-size:.88rem}
+th,td{padding:7px 10px;border-bottom:1px solid var(--line);text-align:left;white-space:nowrap}
+th{background:var(--surface-2);font-weight:600;font-size:.8rem;color:var(--muted);position:sticky;top:0}
+th.sort{cursor:pointer;user-select:none}
+th.sort:hover{color:var(--ink)}
+td.n,th.n{text-align:right}
+tbody tr:hover td{background:var(--surface-2)}
+tr.tot td{font-weight:600;background:var(--surface-2);border-top:1.5px solid var(--muted)}
+tr.clk{cursor:pointer}
+tr.det td{background:var(--surface-2);white-space:normal}
+.mini{font-size:.82rem;width:auto;border:1px solid var(--line);background:var(--surface)}
+.mini th{position:static}
+tr.det .mini td,tr.det .mini th{white-space:nowrap}
+a{color:var(--accent)}
+.pill{display:inline-block;font-size:.76rem;padding:1px 9px;border-radius:999px;font-weight:600}
+.p-equal{background:var(--good-weak);color:var(--good)}
+.p-over{background:var(--info-weak);color:var(--info)}
+.p-under{background:var(--warn-weak);color:var(--warn)}
+.p-pending{background:var(--bad-weak);color:var(--bad)}
+.p-adj{background:var(--surface-2);color:var(--muted);border:1px solid var(--line);margin-left:4px}
+.pbar{display:inline-flex;width:70px;height:6px;border-radius:3px;background:var(--line);overflow:hidden;vertical-align:middle;margin-left:6px}
+.pbar i{background:var(--accent)}
+.note{font-size:.85rem;color:var(--muted);max-width:75ch}
+.hint{font-size:.85rem;color:var(--muted)}
+footer{border-top:1px solid var(--line);padding-top:16px;font-size:.85rem;color:var(--muted);line-height:1.7}
+footer a{color:var(--accent)}
+.empty{padding:28px;text-align:center;color:var(--muted)}
+.guide{display:flex;flex-direction:column;gap:10px}
+.steps{margin:0;padding-left:1.4em;display:flex;flex-direction:column;gap:2px}
+code{font-family:ui-monospace,"Cascadia Mono",Consolas,monospace;font-size:.85em;background:var(--surface-2);padding:1px 5px;border-radius:4px;word-break:break-word}
+.codehead{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap}
+pre.code{margin:0;background:var(--surface-2);border:1px solid var(--line);border-radius:8px;padding:12px 14px;overflow-x:auto;font-family:ui-monospace,"Cascadia Mono",Consolas,monospace;font-size:.82rem;line-height:1.5;color:var(--ink)}
+@media (prefers-reduced-motion:no-preference){.kpi .bar i{transition:width .4s ease}}
+</style>
+
+<div class="wrap">
+  <header class="top">
+    <div>
+      <div class="eyebrow">สิทธิเบิกได้กรมบัญชีกลาง · ผู้ป่วยใน</div>
+      <h1>จับคู่ลูกหนี้รายตัว IPD เบิกได้ กับ STM</h1>
+      <p class="sub">นำเข้าลูกหนี้รายตัวจาก HIS กับ Statement IPD (CSCD) ระบบจับคู่ด้วย AN แล้วสรุปยอดรับชดเชย ผลต่างสูง/ต่ำกว่าลูกหนี้ และรายที่ยังค้างรับ</p>
+    </div>
+    <button id="btnExport" class="primary" disabled>ส่งออก Excel</button>
+  </header>
+
+  <section class="panel" aria-label="นำเข้าไฟล์">
+    <div class="imports">
+      <div class="drop" id="dropDeb">
+        <div class="step">1</div>
+        <div style="min-width:0">
+          <div class="t">ลูกหนี้รายตัว IPD เบิกได้</div>
+          <div class="h">ไฟล์ .xls / .xlsx / .csv ที่มีคอลัมน์ an, hn, cid, fname, lname, dchdate, debt_amount</div>
+          <div class="st" id="stDeb"></div>
+        </div>
+        <input type="file" id="fileDeb" accept=".xls,.xlsx,.csv" aria-label="เลือกไฟล์ลูกหนี้">
+      </div>
+      <div class="drop" id="dropStm">
+        <div class="step">2</div>
+        <div style="min-width:0">
+          <div class="t">STM IPD กรมบัญชีกลาง</div>
+          <div class="h">เลือกได้หลายไฟล์ STM_xxxxx_IPyyyymm_nn.xls หรือไฟล์ .zip ทั้งโฟลเดอร์</div>
+          <div class="st" id="stStm"></div>
+        </div>
+        <input type="file" id="fileStm" accept=".xls,.xlsx,.zip" multiple aria-label="เลือกไฟล์ STM">
+      </div>
+    </div>
+    <div class="opts">
+      <label for="tol">ยอมรับผลต่าง ±<input type="number" id="tol" min="0" step="0.01" value="0"> บาท</label>
+      <label for="dfmt">วันที่แบบข้อความในไฟล์ลูกหนี้
+        <select id="dfmt"><option value="auto">ตรวจอัตโนมัติ</option><option value="dmy">วัน/เดือน/ปี</option><option value="mdy">เดือน/วัน/ปี</option></select></label>
+      <label for="rangeOnly"><input type="checkbox" id="rangeOnly" checked> แท็บ "STM ไม่พบในลูกหนี้" แสดงเฉพาะช่วงวันจำหน่ายของลูกหนี้</label>
+      <span class="sp"></span>
+      <button id="btnClear">ล้างข้อมูล</button>
+    </div>
+  </section>
+
+  <div id="msg"></div>
+
+  <section class="kpis" id="kpis" aria-label="สรุป"></section>
+
+  <section>
+    <div class="tabs" role="tablist" id="tabs">
+      <button role="tab" data-tab="month" aria-selected="true">สรุปรายเดือนจำหน่าย</button>
+      <button role="tab" data-tab="doc" aria-selected="false">สรุปตามงวด STM</button>
+      <button role="tab" data-tab="detail" aria-selected="false">รายละเอียดรายตัว <span class="cnt" id="cDetail">0</span></button>
+      <button role="tab" data-tab="orphan" aria-selected="false">STM ไม่พบในลูกหนี้ <span class="cnt" id="cOrphan">0</span></button>
+      <button role="tab" data-tab="files" aria-selected="false">ไฟล์ที่นำเข้า</button>
+    </div>
+    <div id="view"></div>
+  </section>
+
+  <p class="note">วิธีคิด: ลูกหนี้ 1 AN ตัดครั้งแรกเต็มยอดในงวด STM แรกที่พบ ผลต่าง = พึงรับทั้งหมด − ยอดลูกหนี้ ถ้า AN เดียวกันมีใน STM งวดถัดไป (ปรับปรุง/อุทธรณ์) ยอดในงวดนั้นนับเป็นผลต่างทั้งจำนวน ถ้าไม่พบ AN จะลองจับด้วยเลขบัตรประชาชน + วันจำหน่าย ข้อมูลทั้งหมดประมวลผลในเบราว์เซอร์ ไม่ถูกส่งออกไปที่ใด</p>
+
+  <section class="panel guide" aria-labelledby="gTitle">
+    <h2 id="gTitle">คู่มือดึงลูกหนี้รายตัวจาก HOSxP</h2>
+    <ol class="steps">
+      <li>เปิด HOSxP XE ไปที่ Tools → SQL Query</li>
+      <li>วาง SQL ด้านล่าง แก้ช่วงวันที่ในบรรทัด <code>i.dchdate BETWEEN</code> ให้ตรงปีงบประมาณที่ต้องการ แล้วกด Run</li>
+      <li>กด Excel Export บันทึกเป็น .xls แล้วนำไฟล์มาใส่ช่องที่ 1 ด้านบน</li>
+    </ol>
+    <div class="codehead"><span class="hint">PostgreSQL · HOSxP XE 4 · ตัดรายที่มีสิทธิ พรบ. ทั้งฝั่ง visit และฝั่ง IPD</span><button id="btnCopySql" type="button">คัดลอก SQL</button></div>
+    <pre class="code" id="sqlDebtor">SELECT
+    i.dchdate AS dchdate,
+    i.hn AS hn,
+    i.an AS an,
+    CONCAT(p.pname, p.fname) AS fname,
+    p.lname AS lname,
+    p.cid AS cid,
+    COALESCE(a.uc_money, 0) AS debt_amount,
+    ip.pttype AS last_pttype,
+    COALESCE(a.income, 0) AS income,
+    COALESCE(a.paid_money, 0) AS paid_money
+FROM ipt i
+JOIN ipt_pttype ip ON ip.an = i.an AND ip.pttype_number = 1
+JOIN pttype pt ON pt.pttype = ip.pttype
+JOIN patient p ON p.hn = i.hn
+LEFT JOIN an_stat a ON a.an = i.an
+WHERE pt.hipdata_code = 'OFC'
+  AND pt.nhso_code = 'O1'
+  AND i.dchdate BETWEEN '2025-10-01' AND '2026-09-30'
+  -- ตัดรายที่ visit (ฝั่ง OPD/ER) มีสิทธิ พรบ.
+  AND NOT EXISTS (
+      SELECT 1
+      FROM visit_pttype vp
+      JOIN pttype x ON x.pttype = vp.pttype
+      WHERE vp.vn = i.vn
+        AND ( (x.hipdata_code = 'CSH' AND x.nhso_code = '01')
+           OR (x.hipdata_code = 'INS' AND x.nhso_code = 'A1') )
+  )
+  -- ตัดรายที่รายการสิทธิ IPD มีสิทธิ พรบ.
+  AND NOT EXISTS (
+      SELECT 1
+      FROM ipt_pttype ip2
+      JOIN pttype x ON x.pttype = ip2.pttype
+      WHERE ip2.an = i.an
+        AND ( (x.hipdata_code = 'CSH' AND x.nhso_code = '01')
+           OR (x.hipdata_code = 'INS' AND x.nhso_code = 'A1') )
+  )
+ORDER BY i.dchdate, i.an</pre>
+    <p class="note">ข้อควรระวัง: บาง รพ. ใช้คู่ CSH + 01 กับสิทธิชำระเงินเองทั่วไปด้วย ควรตรวจก่อนใช้ว่าคู่โค้ดนี้ตรงกับสิทธิอะไรบ้าง ด้วยคำสั่ง <code>SELECT pttype, name, hipdata_code, nhso_code FROM pttype WHERE (hipdata_code='CSH' AND nhso_code='01') OR (hipdata_code='INS' AND nhso_code='A1');</code> และ '01' ของ พรบ. เป็นเลขศูนย์ ส่วน 'O1' ของ OFC เป็นตัวอักษร O</p>
+  </section>
+
+  <footer>
+    ออกแบบและพัฒนาโดย นายแพทย์กุลพล ตั้งรัตนาพิบูล<br>
+    นายแพทย์ชำนาญการ (ด้านเวชกรรม)<br>
+    ปฏิบัติหน้าที่ผู้อำนวยการ<a href="https://www.songkwaehospital.com/" target="_blank" rel="noopener">โรงพยาบาลสองแคว</a> อำเภอสองแคว จังหวัดน่าน
+  </footer>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+
+<script id="core">
+/* ===== Core logic (pure functions) ===== */
+const TH_M=['ม.ค.','ก.พ.','มี.ค.','เม.ย.','พ.ค.','มิ.ย.','ก.ค.','ส.ค.','ก.ย.','ต.ค.','พ.ย.','ธ.ค.'];
+function num(v){if(v==null||v==='')return 0;if(typeof v==='number')return isFinite(v)?v:0;const n=parseFloat(String(v).replace(/[,\s]/g,''));return isNaN(n)?0:n;}
+function digits(v){return String(v==null?'':v).trim().replace(/\.0+$/,'').replace(/\D/g,'');}
+function normAN(v){return digits(v).replace(/^0+/,'');}
+function pad2(n){return String(n).padStart(2,'0');}
+function ymd(y,m,d){if(!(y>1900&&m>=1&&m<=12&&d>=1&&d<=31))return '';return y+'-'+pad2(m)+'-'+pad2(d);}
+function fixYear(y){y=+y;if(y<100)y+= y>=50?2500:2000;if(y>2400)y-=543;return y;}
+/* parse a date cell. fmt: 'dmy' | 'mdy' */
+function parseDate(v,fmt){
+  if(v==null||v==='')return '';
+  if(v instanceof Date){let d=v;if(d.getHours()===23&&d.getMinutes()>=59)d=new Date(d.getTime()+60000);return ymd(d.getFullYear(),d.getMonth()+1,d.getDate());}
+  if(typeof v==='object'&&v.__d){return String(v.__d).slice(0,10);}
+  if(typeof v==='number'){if(v>20000&&v<80000){const d=new Date(Date.UTC(1899,11,30)+Math.round(v*864e5));return ymd(d.getUTCFullYear(),d.getUTCMonth()+1,d.getUTCDate());}return '';}
+  const s=String(v).trim();
+  let m=s.match(/^(\d{4})\s*[-\/.]\s*(\d{1,2})\s*[-\/.]\s*(\d{1,2})/);
+  if(m)return ymd(fixYear(m[1]),+m[2],+m[3]);
+  m=s.match(/^(\d{1,2})\s*[-\/.]\s*(\d{1,2})\s*[-\/.]\s*(\d{2,4})/);
+  if(m){let a=+m[1],b=+m[2];let d=a,mo=b;if(fmt==='mdy'){d=b;mo=a;}return ymd(fixYear(m[3]),mo,d);}
+  return '';
+}
+function detectFmt(vals){let dmy=0,mdy=0;for(const v of vals){if(typeof v!=='string')continue;const m=v.trim().match(/^(\d{1,2})\s*[-\/.]\s*(\d{1,2})\s*[-\/.]\s*\d{2,4}/);if(!m)continue;if(+m[1]>12)dmy++;else if(+m[2]>12)mdy++;}return mdy>dmy?'mdy':'dmy';}
+function hkey(s){return String(s==null?'':s).toLowerCase().replace(/[\s_\-.()]/g,'');}
+function thDate(iso){if(!iso)return '';const [y,m,d]=iso.split('-');return d+'/'+m+'/'+String(+y+543).slice(2);}
+function thMonth(ym){if(!ym)return 'ไม่ระบุ';const [y,m]=ym.split('-');return TH_M[+m-1]+' '+String(+y+543).slice(2);}
+function fyOf(iso){if(!iso)return '';const y=+iso.slice(0,4),m=+iso.slice(5,7);return (m>=10?y+1:y)+543;}
+
+/* ---- STM parser ---- rows: array of arrays (sheet_to_json header:1) */
+const STM_COLS={rep:['rep'],seq:['ลำดับที่'],hn:['hn'],an:['an'],pid:['pid'],name:['ชื่อสกุล','ชื่อ'],adm:['วันเข้ารักษา'],dch:['วันจำหน่าย'],proj:['projcode'],adjrw:['adjrw'],charge:['เรียกเก็บ'],pa:['พรบ'],total:['พึงรับทั้งหมด'],seqno:['seqno']};
+const STM_SUB={room:'ค่าห้อง',inst:'ค่าอวัยวะฯ',drug:'ค่ายา',treat:'ค่ารักษา',car:'ค่ารถ',wait:'กรณีพักรอจำหน่าย',other:'ค่าบริการอื่นๆ'};
+const SUB_LABEL={room:'ค่าห้อง',inst:'ค่าอวัยวะฯ',drug:'ค่ายา',treat:'ค่ารักษา',car:'ค่ารถ',wait:'พักรอจำหน่าย',other:'บริการอื่นๆ'};
+function parseSTM(rows,fileName){
+  const info={file:fileName,doc:'',period:'',hcode:'',hname:'',lines:[],warn:''};
+  for(const r of rows.slice(0,15)){for(const c of (r||[])){if(typeof c!=='string')continue;let m=c.match(/เลขที่เอกสาร\s*[:：]?\s*(\S+)/);if(m&&!info.doc)info.doc=m[1];m=c.match(/^โรงพยาบาล\s+(\d{5})\s*(.*)$/);if(m){info.hcode=m[1];info.hname=m[2].trim();}}}
+  if(!info.doc){const m=String(fileName).match(/(\d{5}_IP\d{6}_\d+)/i);if(m)info.doc=m[1];}
+  const pm=(info.doc||fileName).match(/IP(\d{4})(\d{2})/i);if(pm)info.period=pm[1]+'-'+pm[2];
+  let map=null;
+  for(let i=0;i<rows.length;i++){
+    const r=rows[i]||[];
+    const keys=r.map(hkey);
+    if(keys.includes('an')&&keys.includes('hn')){
+      map={};for(const [k,al] of Object.entries(STM_COLS)){const idx=keys.findIndex(x=>al.includes(x));if(idx>=0)map[k]=idx;}
+      const sub=(rows[i+1]||[]).map(x=>String(x==null?'':x).trim());map.sub={};
+      for(const [k,lab] of Object.entries(STM_SUB)){const idx=sub.findIndex(x=>x===lab);if(idx>=0)map.sub[k]=idx;}
+      i++;continue;
+    }
+    if(!map)continue;
+    const an=digits(r[map.an]);const rep=digits(r[map.rep]);
+    if(an.length<5||!rep)continue;
+    const comp={};let cs=0;for(const k of Object.keys(STM_SUB)){comp[k]=map.sub[k]!=null?num(r[map.sub[k]]):0;cs+=comp[k];}
+    const total=map.total!=null&&r[map.total]!=null&&r[map.total]!==''?num(r[map.total]):cs;
+    info.lines.push({doc:info.doc,period:info.period,file:fileName,rep,seq:String(r[map.seq]??'').trim(),hn:String(r[map.hn]??'').trim(),an,anKey:normAN(an),pid:digits(r[map.pid]),name:String(r[map.name]??'').replace(/\s+/g,' ').trim(),adm:parseDate(r[map.adm],'dmy'),dch:parseDate(r[map.dch],'dmy'),proj:String(r[map.proj]??'').trim(),adjrw:num(r[map.adjrw]),charge:num(r[map.charge]),pa:num(r[map.pa]),comp,total});
+  }
+  if(!map)info.warn='ไม่พบหัวตาราง REP/HN/AN';
+  return info;
+}
+
+/* ---- Debtor parser ---- */
+const DEB_COLS={an:['an'],hn:['hn'],cid:['cid','pid','idcard','เลขบัตรประชาชน','เลขประจำตัวประชาชน','เลขบัตร'],fname:['fname','ชื่อ'],lname:['lname','นามสกุล','สกุล'],full:['ptname','fullname','name','ชื่อสกุล','ชื่อผู้ป่วย'],dch:['dchdate','dischargedate','วันจำหน่าย','dchdt'],reg:['regdate','admitdate','วันรับไว้','วันเข้ารักษา'],debt:['debtamount','debt','ลูกหนี้','ยอดลูกหนี้','จำนวนเงินลูกหนี้','amount','ยอดเงิน','claimamount','เรียกเก็บ']};
+function parseDebtor(rows,fmtOpt){
+  let h=-1,map={};
+  for(let i=0;i<Math.min(rows.length,15);i++){const keys=(rows[i]||[]).map(hkey);if(keys.includes('an')){h=i;for(const [k,al] of Object.entries(DEB_COLS)){let idx=-1;for(const a of al){idx=keys.indexOf(hkey(a));if(idx>=0)break;}if(idx>=0)map[k]=idx;}break;}}
+  if(h<0)return {err:'ไม่พบคอลัมน์ an ในไฟล์ลูกหนี้',list:[]};
+  if(map.debt==null)return {err:'ไม่พบคอลัมน์ยอดลูกหนี้ (debt_amount)',list:[]};
+  const body=rows.slice(h+1).filter(r=>r&&digits(r[map.an]).length>=5);
+  const fmt=fmtOpt==='auto'?detectFmt(body.map(r=>r[map.dch])):fmtOpt;
+  const byAN=new Map();let dup=0;
+  for(const r of body){
+    const an=digits(r[map.an]);const key=normAN(an);
+    const name=map.full!=null?String(r[map.full]??''):[r[map.fname],r[map.lname]].filter(x=>x!=null&&x!=='').join(' ');
+    const o={an,anKey:key,hn:String(r[map.hn]??'').trim(),cid:digits(r[map.cid]),name:name.replace(/\s+/g,' ').trim(),dch:parseDate(r[map.dch],fmt),reg:map.reg!=null?parseDate(r[map.reg],fmt):'',debt:num(r[map.debt]),rows:1};
+    if(byAN.has(key)){const p=byAN.get(key);p.debt+=o.debt;p.rows++;dup++;}else byAN.set(key,o);
+  }
+  return {list:[...byAN.values()],dup,fmt,cols:map};
+}
+
+/* ---- Match ---- */
+function reconcile(debtors,stmFiles,tol){
+  const lines=[];const seen=new Set();let dupLines=0;
+  for(const f of stmFiles)for(const l of f.lines){const k=[l.doc,l.rep,l.anKey,l.seq,l.total].join('|');if(seen.has(k)){dupLines++;continue;}seen.add(k);l.debtor=null;l.cut=0;l.diff=0;lines.push(l);}
+  const byAN=new Map(),byPid=new Map();
+  for(const l of lines){if(!byAN.has(l.anKey))byAN.set(l.anKey,[]);byAN.get(l.anKey).push(l);const pk=l.pid+'|'+l.dch;if(l.pid){if(!byPid.has(pk))byPid.set(pk,[]);byPid.get(pk).push(l);}}
+  const ord=(a,b)=>(a.period+a.doc+a.rep.padStart(12,'0')).localeCompare(b.period+b.doc+b.rep.padStart(12,'0'));
+  const res=debtors.map(d=>{
+    let ls=byAN.get(d.anKey)||[];let by='AN';
+    if(!ls.length&&d.cid&&d.dch){ls=(byPid.get(d.cid+'|'+d.dch)||[]).filter(l=>!l.debtor);by='CID+วันจำหน่าย';}
+    ls=ls.slice().sort(ord);
+    const received=ls.reduce((s,l)=>s+l.total,0);
+    ls.forEach((l,i)=>{l.debtor=d;l.cut=i===0?d.debt:0;l.diff=i===0?l.total-d.debt:l.total;});
+    const diff=ls.length?received-d.debt:0;
+    let st='pending';if(ls.length)st=Math.abs(diff)<=tol+1e-9?'equal':(diff>0?'over':'under');
+    return Object.assign({},d,{lines:ls,by:ls.length?by:'',received,diff,st,charge:ls.length?ls[0].charge:0,firstDoc:ls.length?ls[0].doc:'',firstPeriod:ls.length?ls[0].period:''});
+  });
+  const orphans=lines.filter(l=>!l.debtor);
+  return {res,lines,orphans,dupLines};
+}
+
+function summarizeMonth(res){
+  const g=new Map();
+  for(const r of res){const k=r.dch?r.dch.slice(0,7):'';if(!g.has(k))g.set(k,{k,n:0,debt:0,mn:0,cut:0,rec:0,over:0,under:0,pn:0,pend:0});const o=g.get(k);
+    o.n++;o.debt+=r.debt;if(r.lines.length){o.mn++;o.cut+=r.debt;o.rec+=r.received;if(r.diff>0)o.over+=r.diff;else o.under+=-r.diff;}else{o.pn++;o.pend+=r.debt;}}
+  return [...g.values()].sort((a,b)=>a.k.localeCompare(b.k));
+}
+function summarizeDoc(lines){
+  const g=new Map();
+  for(const l of lines){const k=l.doc||l.file;if(!g.has(k))g.set(k,{doc:k,period:l.period,file:l.file,n:0,amt:0,mn:0,cut:0,rec:0,over:0,under:0,on:0,oamt:0});const o=g.get(k);
+    o.n++;o.amt+=l.total;if(l.debtor){o.mn++;o.cut+=l.cut;o.rec+=l.total;if(l.diff>0)o.over+=l.diff;else o.under+=-l.diff;}else{o.on++;o.oamt+=l.total;}}
+  return [...g.values()].sort((a,b)=>(a.period+a.doc).localeCompare(b.period+b.doc));
+}
+if(typeof module!=='undefined')module.exports={parseSTM,parseDebtor,reconcile,summarizeMonth,summarizeDoc,parseDate,detectFmt};
+</script>
+
+<script>
+/* ===== UI ===== */
+const $=s=>document.querySelector(s);
+const fmt=n=>(Math.round(n*100)/100).toLocaleString('th-TH',{minimumFractionDigits:2,maximumFractionDigits:2});
+const fint=n=>n.toLocaleString('th-TH');
+const esc=s=>String(s==null?'':s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const ST_LABEL={equal:'ตรงยอด',over:'รับสูงกว่าลูกหนี้',under:'รับต่ำกว่าลูกหนี้',pending:'ยังไม่พบใน STM'};
+const S={debRows:null,debName:'',stmFiles:[],demo:false,tab:'month',filter:'all',q:'',month:'',sort:{k:'dch',d:1},open:new Set(),R:null,deb:null,orphanAll:0};
+
+function readRows(wb){const ws=wb.Sheets[wb.SheetNames[0]];return XLSX.utils.sheet_to_json(ws,{header:1,raw:true,defval:null});}
+function stmSheetRows(wb){const n=wb.SheetNames.find(x=>x.trim()==='พึงรับ')||wb.SheetNames[0];return XLSX.utils.sheet_to_json(wb.Sheets[n],{header:1,raw:true,defval:null});}
+async function readWorkbook(name,buf){
+  if(/\.csv$/i.test(name)){let t=new TextDecoder('utf-8').decode(buf);if(t.includes(String.fromCharCode(0xFFFD))){try{t=new TextDecoder('windows-874').decode(buf);}catch(e){}}return XLSX.read(t,{type:'string',raw:true,cellDates:true});}
+  return XLSX.read(new Uint8Array(buf),{type:'array',cellDates:true});
+}
+function showMsg(html,cls){$('#msg').innerHTML=html?`<div class="banner ${cls}">${html}</div>`:'';}
+
+async function loadDebtor(file){
+  try{const wb=await readWorkbook(file.name,await file.arrayBuffer());S.debRows=readRows(wb);S.debName=file.name;exitDemo();compute();}
+  catch(e){showMsg('อ่านไฟล์ลูกหนี้ไม่ได้: '+esc(e.message),'err');}
+}
+async function loadStm(files){
+  const out=[];const errs=[];
+  for(const f of files){
+    try{
+      if(/\.zip$/i.test(f.name)){const z=await JSZip.loadAsync(await f.arrayBuffer());for(const ent of Object.values(z.files)){if(ent.dir||!/\.xlsx?$/i.test(ent.name)||/__MACOSX/.test(ent.name))continue;const b=await ent.async('arraybuffer');const base=ent.name.split('/').pop();out.push(parseSTM(stmSheetRows(await readWorkbook(base,b)),base));}}
+      else out.push(parseSTM(stmSheetRows(await readWorkbook(f.name,await f.arrayBuffer())),f.name));
+    }catch(e){errs.push(f.name+': '+e.message);}
+  }
+  if(S.demo){S.stmFiles=[];}
+  const have=new Set(S.stmFiles.map(f=>f.doc+'|'+f.file));
+  for(const f of out){if(!have.has(f.doc+'|'+f.file))S.stmFiles.push(f);}
+  exitDemo();compute();
+  if(errs.length)showMsg('อ่านไม่ได้บางไฟล์: '+esc(errs.join(' · ')),'err');
+}
+function exitDemo(){if(S.demo){S.demo=false;if(!S.debName)S.debRows=null;if(!S.stmFiles.some(f=>!f.demo))S.stmFiles=S.stmFiles.filter(f=>!f.demo);}}
+
+function compute(){
+  const tol=Math.max(0,num($('#tol').value));
+  S.deb=S.debRows?parseDebtor(S.debRows,$('#dfmt').value):null;
+  const R=reconcile(S.deb&&!S.deb.err?S.deb.list:[],S.stmFiles,tol);
+  const ds=R.res.map(r=>r.dch).filter(Boolean).sort();
+  R.minD=ds[0]||'';R.maxD=ds[ds.length-1]||'';
+  S.orphanAll=R.orphans.length;
+  if($('#rangeOnly').checked&&R.minD)R.orphansShown=R.orphans.filter(l=>l.dch>=R.minD&&l.dch<=R.maxD);else R.orphansShown=R.orphans;
+  S.R=R;render();
+}
+
+function render(){
+  const R=S.R;
+  $('#stDeb').textContent=S.demo?'ตัวอย่าง (ยังไม่ได้เลือกไฟล์)':S.deb?(S.deb.err?'':`${S.debName} · ${fint(S.deb.list.length)} AN`+(S.deb.dup?` (รวมแถวซ้ำ ${S.deb.dup})`:'')):'';
+  const nl=S.stmFiles.reduce((s,f)=>s+f.lines.length,0);
+  $('#stStm').textContent=S.stmFiles.length?(S.demo?'ตัวอย่าง · ':'')+`${fint(S.stmFiles.length)} ไฟล์ · ${fint(nl)} รายการ`+(R.dupLines?` (ข้ามรายการซ้ำ ${R.dupLines})`:''):'';
+  if(S.demo)showMsg('<b>กำลังแสดงข้อมูลตัวอย่าง</b> ชื่อและตัวเลขสมมติทั้งหมด เลือกไฟล์ลูกหนี้และ STM ด้านบนเพื่อเริ่มจับคู่จริง','demo');
+  else if(S.deb&&S.deb.err)showMsg(esc(S.deb.err),'err');
+  else if(!S.deb||!S.stmFiles.length)showMsg(!S.deb?'เลือกไฟล์ลูกหนี้รายตัว (ข้อ 1)':'เลือกไฟล์ STM (ข้อ 2)','demo');
+  else showMsg(`จับคู่แล้ว ช่วงวันจำหน่าย ${thDate(R.minD)} – ${thDate(R.maxD)} · ปีงบประมาณ ${[...new Set(R.res.map(r=>fyOf(r.dch)).filter(Boolean))].join(', ')}`,'ok');
+  $('#btnExport').disabled=!R.res.length&&!R.lines.length;
+  renderKpis();
+  $('#cDetail').textContent=fint(R.res.length);$('#cOrphan').textContent=fint(R.orphansShown.length);
+  document.querySelectorAll('#tabs button').forEach(b=>b.setAttribute('aria-selected',b.dataset.tab===S.tab));
+  ({month:viewMonth,doc:viewDoc,detail:viewDetail,orphan:viewOrphan,files:viewFiles})[S.tab]();
+}
+
+function renderKpis(){
+  const r=S.R.res;const tot=r.reduce((s,x)=>s+x.debt,0);const m=r.filter(x=>x.lines.length);
+  const cut=m.reduce((s,x)=>s+x.debt,0),rec=m.reduce((s,x)=>s+x.received,0);
+  const over=m.reduce((s,x)=>s+(x.diff>0?x.diff:0),0),under=m.reduce((s,x)=>s+(x.diff<0?-x.diff:0),0);
+  const p=r.filter(x=>!x.lines.length);const pend=p.reduce((s,x)=>s+x.debt,0);
+  const pc=r.length?m.length/r.length*100:0;
+  $('#kpis').innerHTML=`
+  <div class="kpi"><span class="l">ลูกหนี้ทั้งหมด</span><span class="v">${fmt(tot)}</span><span class="s">${fint(r.length)} ราย</span></div>
+  <div class="kpi"><span class="l">พบใน STM แล้ว</span><span class="v">${fint(m.length)} <small class="mut" style="font-size:.9rem">ราย (${pc.toFixed(1)}%)</small></span><span class="s">ลูกหนี้ที่ตัด ${fmt(cut)} · รับจริง ${fmt(rec)}</span><span class="bar"><i style="width:${pc}%;background:var(--accent)"></i></span></div>
+  <div class="kpi"><span class="l">ผลต่างรับจริง − ลูกหนี้</span><span class="v ${rec-cut>=0?'pos':'neg'}">${rec-cut>=0?'+':''}${fmt(rec-cut)}</span><span class="s"><span class="pos">สูงกว่า +${fmt(over)}</span> · <span class="neg">ต่ำกว่า −${fmt(under)}</span></span></div>
+  <div class="kpi"><span class="l">ยังไม่พบใน STM (ค้างรับ)</span><span class="v neg">${fmt(pend)}</span><span class="s">${fint(p.length)} ราย</span></div>`;
+}
+
+function tbl(head,body,foot){return `<div class="tbl"><table><thead><tr>${head}</tr></thead><tbody>${body}</tbody>${foot?`<tfoot>${foot}</tfoot>`:''}</table></div>`;}
+function dcell(v){return `<td class="n ${v>0.004?'pos':v<-0.004?'neg':'mut'}">${v>0.004?'+':''}${fmt(v)}</td>`;}
+
+function viewMonth(){
+  const g=summarizeMonth(S.R.res);if(!g.length){$('#view').innerHTML='<div class="empty">ยังไม่มีข้อมูลลูกหนี้</div>';return;}
+  const T={n:0,debt:0,mn:0,cut:0,rec:0,over:0,under:0,pn:0,pend:0};g.forEach(o=>{for(const k in T)T[k]+=o[k];});
+  const row=(o,lab,cls)=>{const pc=o.n?o.mn/o.n*100:0;return `<tr class="${cls||''}"><td>${lab}</td><td class="n">${fint(o.n)}</td><td class="n">${fmt(o.debt)}</td><td class="n">${fint(o.mn)}<span class="pbar"><i style="width:${pc}%"></i></span></td><td class="n">${fmt(o.cut)}</td><td class="n">${fmt(o.rec)}</td><td class="n pos">${fmt(o.over)}</td><td class="n neg">${fmt(o.under)}</td>${dcell(o.rec-o.cut)}<td class="n">${fint(o.pn)}</td><td class="n ${o.pend?'neg':''}">${fmt(o.pend)}</td></tr>`;};
+  $('#view').innerHTML=`<div class="toolbar"><span class="hint">จัดกลุ่มตามเดือนที่จำหน่าย (dchdate) ของลูกหนี้ · คลิกเดือนเพื่อดูรายตัว</span></div>`+
+  tbl(`<th>เดือนจำหน่าย</th><th class="n">ลูกหนี้ (ราย)</th><th class="n">ยอดลูกหนี้</th><th class="n">พบ STM (ราย)</th><th class="n">ลูกหนี้ที่ตัด</th><th class="n">รับจริงตาม STM</th><th class="n">สูงกว่าลูกหนี้</th><th class="n">ต่ำกว่าลูกหนี้</th><th class="n">ผลต่างสุทธิ</th><th class="n">ค้าง (ราย)</th><th class="n">ยอดค้างรับ</th>`,
+    g.map(o=>row(o,`<a href="#" data-month="${o.k}">${thMonth(o.k)}</a>`)).join(''),row(T,'รวม','tot'));
+  $('#view').querySelectorAll('[data-month]').forEach(a=>a.onclick=e=>{e.preventDefault();S.month=a.dataset.month;S.filter='all';S.tab='detail';render();});
+}
+
+function viewDoc(){
+  const g=summarizeDoc(S.R.lines);if(!g.length){$('#view').innerHTML='<div class="empty">ยังไม่มีไฟล์ STM</div>';return;}
+  const T={n:0,amt:0,mn:0,cut:0,rec:0,over:0,under:0,on:0,oamt:0};g.forEach(o=>{for(const k in T)T[k]+=o[k];});
+  const row=(o,lab,per,cls)=>`<tr class="${cls||''}"><td>${per}</td><td>${lab}</td><td class="n">${fint(o.n)}</td><td class="n">${fmt(o.amt)}</td><td class="n">${fint(o.mn)}</td><td class="n">${fmt(o.cut)}</td><td class="n">${fmt(o.rec)}</td><td class="n pos">${fmt(o.over)}</td><td class="n neg">${fmt(o.under)}</td>${dcell(o.rec-o.cut)}<td class="n">${fint(o.on)}</td><td class="n mut">${fmt(o.oamt)}</td></tr>`;
+  $('#view').innerHTML=`<div class="toolbar"><span class="hint">ใช้ลงบัญชีรับชดเชยแต่ละงวด: ลูกหนี้ที่ตัด = ยอดลูกหนี้รายที่พบครั้งแรกในงวดนั้น, ผลต่าง = รับจริง − ลูกหนี้ที่ตัด (งวดปรับปรุงนับเป็นผลต่างทั้งจำนวน)</span></div>`+
+  tbl(`<th>งวด STM</th><th>เลขที่เอกสาร</th><th class="n">รายการ STM</th><th class="n">ยอดพึงรับทั้งหมด</th><th class="n">ตรงลูกหนี้ (ราย)</th><th class="n">ลูกหนี้ที่ตัด</th><th class="n">รับจริง</th><th class="n">สูงกว่า</th><th class="n">ต่ำกว่า</th><th class="n">ผลต่างสุทธิ</th><th class="n">ไม่พบในลูกหนี้ (ราย)</th><th class="n">ยอดไม่พบในลูกหนี้</th>`,
+    g.map(o=>row(o,esc(o.doc),thMonth(o.period))).join(''),row(T,'','รวม','tot'));
+}
+
+function detailRows(){
+  let r=S.R.res;const q=S.q.trim().toLowerCase();
+  if(S.month)r=r.filter(x=>(x.dch||'').slice(0,7)===S.month);
+  if(S.filter==='adj')r=r.filter(x=>x.lines.length>1);else if(S.filter!=='all')r=r.filter(x=>x.st===S.filter);
+  if(q)r=r.filter(x=>(x.an+' '+x.hn+' '+x.name+' '+x.cid+' '+x.firstDoc).toLowerCase().includes(q));
+  const {k,d}=S.sort;r=r.slice().sort((a,b)=>{const va=a[k],vb=b[k];return (typeof va==='number'?va-vb:String(va).localeCompare(String(vb)))*d;});
+  return r;
+}
+function viewDetail(){
+  const all=S.R.res;const cnt=s=>s==='all'?all.length:s==='adj'?all.filter(x=>x.lines.length>1).length:all.filter(x=>x.st===s).length;
+  const months=[...new Set(all.map(x=>(x.dch||'').slice(0,7)))].sort();
+  const chips=[['all','ทั้งหมด'],['equal','ตรงยอด'],['over','รับสูงกว่า'],['under','รับต่ำกว่า'],['pending','ยังไม่พบ STM'],['adj','มีหลายงวด STM']];
+  const rows=detailRows();const lim=rows.slice(0,1500);
+  const th=(k,l,n)=>`<th class="sort ${n?'n':''}" data-k="${k}">${l}${S.sort.k===k?(S.sort.d>0?' ▲':' ▼'):''}</th>`;
+  const body=lim.map((x,i)=>{
+    const open=S.open.has(x.anKey);
+    let h=`<tr class="clk" data-an="${x.anKey}" aria-expanded="${open}"><td class="n mut">${i+1}</td><td>${esc(x.an)}</td><td>${esc(x.hn)}</td><td>${esc(x.name)}</td><td>${thDate(x.dch)}</td><td class="n">${fmt(x.debt)}</td><td class="n">${x.lines.length?fmt(x.charge):''}</td><td class="n">${x.lines.length?fmt(x.received):''}</td>${x.lines.length?dcell(x.diff):'<td></td>'}<td>${esc(x.firstDoc)}</td><td><span class="pill p-${x.st}">${ST_LABEL[x.st]}</span>${x.lines.length>1?`<span class="pill p-adj">${x.lines.length} งวด</span>`:''}${x.by&&x.by!=='AN'?`<span class="pill p-adj">จับด้วย ${x.by}</span>`:''}</td></tr>`;
+    if(open)h+=`<tr class="det"><td></td><td colspan="10">${detailBox(x)}</td></tr>`;
+    return h;}).join('');
+  const T=rows.reduce((t,x)=>{t.debt+=x.debt;t.rec+=x.received;t.cut+=x.lines.length?x.debt:0;return t;},{debt:0,rec:0,cut:0});
+  $('#view').innerHTML=`<div class="toolbar"><div class="chips">${chips.map(([k,l])=>`<button class="chip" aria-pressed="${S.filter===k}" data-f="${k}">${l} ${fint(cnt(k))}</button>`).join('')}</div>
+   <select id="selMonth" aria-label="เดือนจำหน่าย"><option value="">ทุกเดือนจำหน่าย</option>${months.map(m=>`<option value="${m}" ${m===S.month?'selected':''}>${thMonth(m)}</option>`).join('')}</select>
+   <input type="search" id="q" placeholder="ค้นหา AN, HN, ชื่อ, เลขบัตร, เลขที่ STM" value="${esc(S.q)}"></div>`+
+   (rows.length?tbl(`<th class="n">#</th>${th('an','AN')}${th('hn','HN')}${th('name','ชื่อ - สกุล')}${th('dch','วันจำหน่าย')}${th('debt','ยอดลูกหนี้',1)}${th('charge','เรียกเก็บ (STM)',1)}${th('received','พึงรับทั้งหมด',1)}${th('diff','ผลต่าง',1)}${th('firstDoc','STM งวดแรก')}${th('st','สถานะ')}`,body,
+     `<tr class="tot"><td></td><td colspan="4">รวม ${fint(rows.length)} ราย${rows.length>lim.length?` (แสดง ${fint(lim.length)} แถวแรก)`:''}</td><td class="n">${fmt(T.debt)}</td><td></td><td class="n">${fmt(T.rec)}</td>${dcell(T.rec-T.cut)}<td colspan="2"></td></tr>`)
+   :'<div class="empty">ไม่มีรายการตามเงื่อนไข</div>')+`<p class="hint">คลิกแถวเพื่อดูรายละเอียดแยกหมวดตาม STM</p>`;
+  $('#view').querySelectorAll('[data-f]').forEach(b=>b.onclick=()=>{S.filter=b.dataset.f;viewDetail();});
+  $('#view').querySelectorAll('th.sort').forEach(t=>t.onclick=()=>{const k=t.dataset.k;S.sort={k,d:S.sort.k===k?-S.sort.d:1};viewDetail();});
+  $('#view').querySelectorAll('tr.clk').forEach(t=>t.onclick=()=>{const a=t.dataset.an;S.open.has(a)?S.open.delete(a):S.open.add(a);viewDetail();});
+  $('#selMonth').onchange=e=>{S.month=e.target.value;viewDetail();};
+  const qi=$('#q');qi.oninput=()=>{S.q=qi.value;clearTimeout(qi._t);qi._t=setTimeout(()=>{const p=qi.selectionStart;viewDetail();const n=$('#q');n.focus();n.setSelectionRange(p,p);},200);};
+}
+function detailBox(x){
+  const info=`<div class="hint" style="margin-bottom:6px">เลขบัตร ${esc(x.cid)||'-'} · วันรับไว้ ${thDate(x.reg)||'-'}${x.rows>1?` · ลูกหนี้ ${x.rows} แถวรวมกัน`:''}</div>`;
+  if(!x.lines.length)return info+'<span class="hint">ยังไม่พบ AN นี้ในไฟล์ STM ที่นำเข้า</span>';
+  return info+`<div style="overflow-x:auto"><table class="mini"><thead><tr><th>งวด</th><th>เลขที่เอกสาร</th><th>REP</th><th>วันจำหน่าย (STM)</th><th class="n">AdjRW</th><th class="n">เรียกเก็บ</th><th class="n">พรบ.</th>${Object.values(SUB_LABEL).map(l=>`<th class="n">${l}</th>`).join('')}<th class="n">พึงรับทั้งหมด</th><th class="n">ตัดลูกหนี้</th><th class="n">ผลต่าง</th></tr></thead><tbody>${x.lines.map(l=>`<tr><td>${thMonth(l.period)}</td><td>${esc(l.doc)}</td><td>${esc(l.rep)}</td><td>${thDate(l.dch)}</td><td class="n">${l.adjrw.toFixed(4)}</td><td class="n">${fmt(l.charge)}</td><td class="n">${fmt(l.pa)}</td>${Object.keys(SUB_LABEL).map(k=>`<td class="n">${fmt(l.comp[k])}</td>`).join('')}<td class="n"><b>${fmt(l.total)}</b></td><td class="n">${fmt(l.cut)}</td>${dcell(l.diff)}</tr>`).join('')}</tbody></table></div>`;
+}
+
+function viewOrphan(){
+  const R=S.R;const o=R.orphansShown.slice().sort((a,b)=>(a.dch||'').localeCompare(b.dch||''));
+  const T=o.reduce((s,l)=>s+l.total,0);
+  const hid=R.orphans.length-o.length;
+  $('#view').innerHTML=`<div class="toolbar"><span class="hint">รายการใน STM ที่ไม่มี AN ในไฟล์ลูกหนี้ อาจเป็นรายที่ยังไม่ได้ตั้งลูกหนี้ ตั้งผิดสิทธิ หรืออยู่นอกช่วงที่ส่งออกจาก HIS${hid>0?` · ซ่อนรายการนอกช่วงวันจำหน่าย ${fint(hid)} รายการ`:''}</span></div>`+
+  (o.length?tbl(`<th class="n">#</th><th>งวด STM</th><th>เลขที่เอกสาร</th><th>REP</th><th>AN</th><th>HN</th><th>ชื่อ - สกุล</th><th>วันจำหน่าย</th><th class="n">เรียกเก็บ</th><th class="n">พึงรับทั้งหมด</th>`,
+   o.map((l,i)=>`<tr><td class="n mut">${i+1}</td><td>${thMonth(l.period)}</td><td>${esc(l.doc)}</td><td>${esc(l.rep)}</td><td>${esc(l.an)}</td><td>${esc(l.hn)}</td><td>${esc(l.name)}</td><td>${thDate(l.dch)}</td><td class="n">${fmt(l.charge)}</td><td class="n">${fmt(l.total)}</td></tr>`).join(''),
+   `<tr class="tot"><td></td><td colspan="8">รวม ${fint(o.length)} รายการ</td><td class="n">${fmt(T)}</td></tr>`):'<div class="empty">ไม่มีรายการ STM ที่ไม่พบในลูกหนี้</div>');
+}
+
+function viewFiles(){
+  const f=S.stmFiles.slice().sort((a,b)=>(a.period+a.doc).localeCompare(b.period+b.doc));
+  $('#view').innerHTML=`<div class="toolbar"><span class="hint">ลูกหนี้: ${esc(S.debName||(S.demo?'ตัวอย่าง':'-'))}${S.deb&&!S.deb.err?` · รูปแบบวันที่ที่ใช้ ${S.deb.fmt==='mdy'?'เดือน/วัน/ปี':'วัน/เดือน/ปี'}`:''}</span></div>`+
+  (f.length?tbl(`<th>ไฟล์</th><th>งวด</th><th>เลขที่เอกสาร</th><th>หน่วยบริการ</th><th class="n">รายการ</th><th class="n">พึงรับทั้งหมด</th><th>หมายเหตุ</th>`,
+   f.map(x=>`<tr><td>${esc(x.file)}</td><td>${thMonth(x.period)}</td><td>${esc(x.doc)}</td><td>${esc(x.hcode)} ${esc(x.hname)}</td><td class="n">${fint(x.lines.length)}</td><td class="n">${fmt(x.lines.reduce((s,l)=>s+l.total,0))}</td><td class="neg">${esc(x.warn)}</td></tr>`).join('')):'<div class="empty">ยังไม่มีไฟล์ STM</div>');
+}
+
+/* ---- Export ---- */
+async function exportXlsx(){
+  const R=S.R;const wb=XLSX.utils.book_new();
+  const add=(name,aoa)=>XLSX.utils.book_append_sheet(wb,XLSX.utils.aoa_to_sheet(aoa),name);
+  const r2=n=>Math.round(n*100)/100;
+  add('สรุปรายเดือน',[['เดือนจำหน่าย','ลูกหนี้(ราย)','ยอดลูกหนี้','พบSTM(ราย)','ลูกหนี้ที่ตัด','รับจริง','สูงกว่า','ต่ำกว่า','ผลต่างสุทธิ','ค้าง(ราย)','ยอดค้างรับ'],...summarizeMonth(R.res).map(o=>[thMonth(o.k),o.n,r2(o.debt),o.mn,r2(o.cut),r2(o.rec),r2(o.over),r2(o.under),r2(o.rec-o.cut),o.pn,r2(o.pend)])]);
+  add('สรุปตามงวดSTM',[['งวด','เลขที่เอกสาร','รายการSTM','พึงรับทั้งหมด','ตรงลูกหนี้(ราย)','ลูกหนี้ที่ตัด','รับจริง','สูงกว่า','ต่ำกว่า','ผลต่างสุทธิ','ไม่พบในลูกหนี้(ราย)','ยอดไม่พบในลูกหนี้'],...summarizeDoc(R.lines).map(o=>[thMonth(o.period),o.doc,o.n,r2(o.amt),o.mn,r2(o.cut),r2(o.rec),r2(o.over),r2(o.under),r2(o.rec-o.cut),o.on,r2(o.oamt)])]);
+  add('รายละเอียดลูกหนี้',[['AN','HN','เลขบัตร','ชื่อ-สกุล','วันรับไว้','วันจำหน่าย','ยอดลูกหนี้','เรียกเก็บ(STM)','พึงรับทั้งหมด','ผลต่าง','สถานะ','จำนวนงวดSTM','เลขที่STM','จับคู่ด้วย'],...R.res.map(x=>[x.an,x.hn,x.cid,x.name,x.reg,x.dch,r2(x.debt),x.lines.length?r2(x.charge):null,x.lines.length?r2(x.received):null,x.lines.length?r2(x.diff):null,ST_LABEL[x.st],x.lines.length,x.lines.map(l=>l.doc).join(', '),x.by])]);
+  add('รายการSTM',[['งวด','เลขที่เอกสาร','REP','ลำดับ','AN','HN','PID','ชื่อ-สกุล','วันเข้ารักษา','วันจำหน่าย','AdjRW','เรียกเก็บ','พรบ.',...Object.values(SUB_LABEL),'พึงรับทั้งหมด','พบในลูกหนี้','ตัดลูกหนี้','ผลต่าง','ไฟล์'],...R.lines.map(l=>[thMonth(l.period),l.doc,l.rep,l.seq,l.an,l.hn,l.pid,l.name,l.adm,l.dch,l.adjrw,r2(l.charge),r2(l.pa),...Object.keys(SUB_LABEL).map(k=>r2(l.comp[k])),r2(l.total),l.debtor?'พบ':'ไม่พบ',r2(l.cut),l.debtor?r2(l.diff):null,l.file])]);
+  const buf=XLSX.write(wb,{type:'array',bookType:'xlsx'});
+  const fn='จับคู่ลูกหนี้_IPD_OFC_'+new Date().toISOString().slice(0,10)+'.xlsx';
+  let dl=null;try{dl=window.claude&&window.claude.use?await window.claude.use('downloads'):null;}catch(e){}
+  if(dl){try{await dl.save({filename:fn,data:new Blob([buf])});}catch(e){if(e&&e.code!=='declined')showMsg('ส่งออกไม่สำเร็จ: '+esc(e.message||e.code),'err');}return;}
+  const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([buf],{type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'}));a.download=fn;document.body.appendChild(a);a.click();setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove();},1000);
+}
+
+/* ---- Demo data (สมมติ) ---- */
+function loadDemo(){
+  const names=['นาย สมมติ ตัวอย่างหนึ่ง','นาง สมมติ ตัวอย่างสอง','น.ส. สมมติ ตัวอย่างสาม','นาย สมมติ ตัวอย่างสี่','นาง สมมติ ตัวอย่างห้า','นาย สมมติ ตัวอย่างหก','นาง สมมติ ตัวอย่างเจ็ด','นาย สมมติ ตัวอย่างแปด','น.ส. สมมติ ตัวอย่างเก้า','นาย สมมติ ตัวอย่างสิบ'];
+  const deb=[['dchdate','hn','an','fname','lname','cid','debt_amount']];
+  const plan=[[ '2025-10-04',7718.5,[[10311.71,'202511']]],['2025-10-12',4041,[[4041,'202511']]],['2025-10-25',9336.5,[[5133.07,'202512']]],['2025-11-06',8539.5,[[9524.74,'202512']]],['2025-11-18',30316.25,[]],['2025-12-05',7597,[[6517,'202601'],[1020,'202603']]],['2025-12-20',2158.5,[[3132.41,'202601']]],['2026-01-09',2375,[[6798.74,'202602']]],['2026-01-25',12651,[[12651,'202602']]],['2026-02-14',10724.5,[]]];
+  const stm={};
+  plan.forEach(([d,debt,ls],i)=>{const an='69900'+String(1000+i);const nm=names[i].split(' ');deb.push([d,String(90000+i).padStart(7,'0'),an,nm[0]+nm[1],nm[2],'9'+String(100000000000+i),String(debt)]);
+    ls.forEach(([t,p],j)=>{(stm[p]=stm[p]||[]).push([String(690000000+i*10+j),'1',String(90000+i).padStart(7,'0'),an,'9'+String(100000000000+i),names[i],d.split('-').reverse().join('/')+' 10:00:00',d.split('-').reverse().join('/')+' 10:00:00',null,'0.5000',debt,0,Math.min(t,3000),0,0,Math.max(0,t-3000),0,0,0,t]);});});
+  S.debRows=deb.map((r,i)=>i?[r[0],...r.slice(1)]:r);S.debName='';
+  S.stmFiles=Object.keys(stm).sort().map(p=>{const rows=[['เลขที่เอกสาร 00000_IP'+p+'_01'],['โรงพยาบาล 00000 รพ.ตัวอย่าง'],['REP','ลำดับที่','HN','AN','PID','ชื่อ - สกุล','วันเข้ารักษา','วันจำหน่าย','PROJCODE','AdjRW','เรียกเก็บ','พรบ.','พึงรับ',null,null,null,null,null,null,'พึงรับทั้งหมด','SEQ NO'],[null,null,null,null,null,null,null,null,null,null,null,null,'ค่าห้อง','ค่าอวัยวะฯ','ค่ายา','ค่ารักษา','ค่ารถ','กรณีพักรอจำหน่าย','ค่าบริการอื่นๆ',null,null],...stm[p]];const f=parseSTM(rows,'ตัวอย่าง_IP'+p+'.xls');f.demo=true;return f;});
+  S.demo=true;compute();
+}
+
+/* ---- Wiring ---- */
+function wireDrop(zone,input,fn){
+  input.addEventListener('change',()=>{if(input.files.length)fn([...input.files]);input.value='';});
+  ['dragenter','dragover'].forEach(e=>zone.addEventListener(e,ev=>{ev.preventDefault();zone.classList.add('over');}));
+  ['dragleave','drop'].forEach(e=>zone.addEventListener(e,()=>zone.classList.remove('over')));
+}
+wireDrop($('#dropDeb'),$('#fileDeb'),fs=>loadDebtor(fs[0]));
+wireDrop($('#dropStm'),$('#fileStm'),fs=>loadStm(fs));
+['tol','dfmt','rangeOnly'].forEach(id=>$('#'+id).addEventListener('change',compute));
+$('#tabs').addEventListener('click',e=>{const b=e.target.closest('button[data-tab]');if(!b)return;S.tab=b.dataset.tab;if(S.tab!=='detail'){}render();});
+$('#btnClear').onclick=()=>{S.debRows=null;S.debName='';S.stmFiles=[];S.open.clear();S.month='';S.q='';S.filter='all';loadDemo();};
+$('#btnExport').onclick=exportXlsx;
+$('#btnCopySql').onclick=()=>{const b=$('#btnCopySql'),pre=$('#sqlDebtor');const done=t=>{b.textContent=t;setTimeout(()=>b.textContent='คัดลอก SQL',1800);};
+  const sel=()=>{const r=document.createRange();r.selectNodeContents(pre);const s=getSelection();s.removeAllRanges();s.addRange(r);done('เลือกข้อความแล้ว กด Ctrl+C');};
+  try{navigator.clipboard.writeText(pre.textContent).then(()=>done('คัดลอกแล้ว'),sel);}catch(e){sel();}};
+if(typeof XLSX==='undefined'){showMsg('โหลดไลบรารีอ่าน Excel ไม่สำเร็จ ตรวจสอบการเชื่อมต่ออินเทอร์เน็ตแล้วรีเฟรชหน้า','err');}
+loadDemo();
+</script>
+
+</body></html>
